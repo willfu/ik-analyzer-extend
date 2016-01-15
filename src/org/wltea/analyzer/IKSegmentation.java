@@ -76,7 +76,7 @@ public final class IKSegmentation {
 				int analyzedLength = 0;
 				for (int buffIndex = 0; buffIndex < available; buffIndex++) {
 					//移动缓冲区指针
-					context.setCursor(buffIndex);
+					context.setCursor(buffIndex); // 再一个字的处理中, cursor位置不变
 					//进行字符规格化（全角转半角，大写转小写处理）
 					char c = CharacterHelper.regularize(segmentBuff[buffIndex]);
 					segmentBuff[buffIndex] = c;

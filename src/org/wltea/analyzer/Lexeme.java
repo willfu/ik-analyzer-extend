@@ -1,5 +1,8 @@
 package org.wltea.analyzer;
 
+import android.support.annotation.NonNull;
+import android.util.SparseArray;
+
 /**
  * IK Analyzer v3.2
  * 语义单元（词元） *
@@ -8,6 +11,7 @@ package org.wltea.analyzer;
  */
 public final class Lexeme implements Comparable<Lexeme> {
 
+	// type 一旦固定下来就不能改动只能新增
 	public enum Type {
 		TYPE_CJK_NORMAL, // 普通词元
 		TYPE_CJK_SUR_NAME, // 姓氏
@@ -17,7 +21,16 @@ public final class Lexeme implements Comparable<Lexeme> {
 		TYPE_NUM, // 数词
 		TYPE_NUMCOUNT, // 量词
 		TYPE_LETTER, // 英文
-		TYPE_BOOK_TITLE, // 书名
+		TYPE_BOOK_TITLE; // 书名
+		private static SparseArray<Type> array = new SparseArray<>();
+		static {
+			for (Type t : Type.values()) {
+				array.append(t.ordinal(), t);
+			}
+		}
+		public static Type of(int i) {
+			return array.get(i);
+		}
 	}
 
 	//词元的起始位移
@@ -84,7 +97,7 @@ public final class Lexeme implements Comparable<Lexeme> {
 	 * 词元在排序集合中的比较算法
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */
-	public int compareTo(Lexeme other) {
+	public int compareTo(@NonNull Lexeme other) {
 		//起始位置优先
 		if (this.begin < other.getBegin()) {
 			return -1;

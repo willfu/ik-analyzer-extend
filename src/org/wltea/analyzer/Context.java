@@ -125,31 +125,49 @@ public class Context {
 			if (element.getType() == Lexeme.Type.TYPE_CJK_SUR_NAME) {
 				int begin = element.getBegin();
 				int end = element.getBegin() + element.getLength();
-				// 下一个字是否在其他lexeme中，并且不是姓
+				// 下一个字是否在其他lexeme中，并且不是姓,也不是前置词
 				Lexeme nextElement = element.getNext();
+				Hit surNameHit = null;
+				Hit prepositionHit = null;
 				if (nextElement != null) {
-					Hit surNameHit = Dictionary.matchInSurnameDict(segmentBuffer, nextElement.getBegin(), 1);
-					if (surNameHit.isUnMatch() && end == nextElement.getBegin() && nextElement.getLength() == 1) {
-						// 下两个字是否在其他lexeme中，并且不是姓
+					 surNameHit = Dictionary.matchInSurnameDict(segmentBuffer, nextElement.getBegin(), 1);
+					 prepositionHit = Dictionary.matchInPrepDict(segmentBuffer, nextElement.getBegin(), 1);
+					if (prepositionHit.isUnMatch() && surNameHit.isUnMatch() && end == nextElement.getBegin() && nextElement.getLength() == 1) {
 						end = nextElement.getEndPosition();
 						nextElement = nextElement.getNext();
-						Lexeme newLexeme = null;
+						int nameLen = 1; // 名的长度(不包含姓)
 						if (nextElement != null) {
 							surNameHit = Dictionary.matchInSurnameDict(segmentBuffer, nextElement.getBegin(), 1);
-							if (surNameHit.isUnMatch() && end == nextElement.getBegin() && nextElement.getLength() == 1) {
-								newLexeme = new Lexeme(getBuffOffset(), begin, element.getLength() + 2, Lexeme.Type.TYPE_CJK_FULL_NAME);
+							prepositionHit = Dictionary.matchInPrepDict(segmentBuffer, nextElement.getBegin(), 1);
+							if (end == nextElement.getBegin() && nextElement.getLength() == 1) { // 是否在其他lexeme中，并且不是姓,也不是前置词
+								if (surNameHit.isUnMatch() && prepositionHit.isUnMatch()) {
+									nameLen = 2;
+								} else {
+									if (surNameHit.isPrefix()) { // 如果是前缀, 再往下看一个词
+										Hit hyphenatedNameHit = surNameHit.getMatchedDictSegment().match(segmentBuffer, nextElement.getBegin() + 1, 1);
+										if (hyphenatedNameHit.isUnMatch()) {
+											nameLen = 2;
+										}
+									} else {
+										// 是姓, 但是后面没有其他字符
+										if (nextElement.getBegin() == available - 1) {
+											nameLen = 2;
+										}
+									}
+								}
 							}
-						} else {
-							newLexeme = new Lexeme(getBuffOffset(), begin, element.getLength() + 1, Lexeme.Type.TYPE_CJK_FULL_NAME);
-						}
-						if (newLexeme != null) {
-							addLexeme(newLexeme);
+							addName(begin, element.getLength() + nameLen);
 						}
 					}
 				}
 			}
 			element = element.getNext();
 		}
+	}
+
+	private void addName(int begin, int length) {
+		Lexeme newLexeme = new Lexeme(getBuffOffset(), begin, length, Lexeme.Type.TYPE_CJK_FULL_NAME);
+		addLexeme(newLexeme);
 	}
 
 	/**
@@ -176,6 +194,9 @@ public class Context {
 	 * @param lexeme
 	 */
 	public void addLexeme(Lexeme lexeme) {
+		if (lexeme == null) {
+			return;
+		}
 		if (!Dictionary.isStopWord(segmentBuffer, lexeme.getBegin(), lexeme.getLength())) {
 			this.lexemeSet.addLexeme(lexeme);
 		}

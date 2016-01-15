@@ -26,7 +26,7 @@ public class BookTitleSegmenter implements ISegmenter {
 		char c = segmentBuff[current];
 		if (foundStart) {
 			if (c == '》') {
-				Lexeme newLexeme = new Lexeme(context.getBuffOffset(), start, current - start + 1, Lexeme.Type.TYPE_BOOK_TITLE);
+				Lexeme newLexeme = new Lexeme(context.getBuffOffset(), start, current - start, Lexeme.Type.TYPE_BOOK_TITLE);
 				context.addLexeme(newLexeme);
 				reset();
 			} else {
@@ -38,7 +38,7 @@ public class BookTitleSegmenter implements ISegmenter {
 		} else {
 			if (c == '《') {
 				foundStart = true;
-				start = current;
+				start = current + 1;
 				foundLength++;
 			}
 		}
