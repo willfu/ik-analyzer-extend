@@ -39,7 +39,6 @@ public class BookTitleSegmenter implements ISegmenter {
 			if (c == '《') {
 				foundStart = true;
 				start = current + 1;
-				foundLength++;
 			}
 		}
 		if (foundStart) {

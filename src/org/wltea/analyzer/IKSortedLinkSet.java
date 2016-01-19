@@ -24,9 +24,7 @@ public class IKSortedLinkSet {
 			this.tail = lexeme;
 			this.size++;
 		} else {
-			if (this.tail.compareTo(lexeme) == 0) { // 词元与尾部词元相同，不放入集合
-
-			} else if (this.tail.compareTo(lexeme) < 0) { // 词元接入链表尾部
+			if (this.tail.compareTo(lexeme) < 0) { // 词元接入链表尾部
 				this.tail.setNext(lexeme);
 				lexeme.setPrev(this.tail);
 				this.tail = lexeme;
@@ -38,20 +36,21 @@ public class IKSortedLinkSet {
 				this.size++;
 			} else {
 				//从尾部上逆
-				Lexeme l = this.tail;
-				while (l != null && l.compareTo(lexeme) > 0) {
-					l = l.getPrev();
+				Lexeme currentTail = this.tail;
+				while (currentTail != null && currentTail.compareTo(lexeme) > 0) {
+					currentTail = currentTail.getPrev();
 				}
-				if (l != null) {
-					if (l.compareTo(lexeme) == 0) { // 词元与集合中的词元重复，不放入集合，=0表示词元与集合中的词元重复，不放入集合
-
-					} else if (l.compareTo(lexeme) < 0) { // 词元插入链表中的某个位置
-						lexeme.setPrev(l);
-						lexeme.setNext(l.getNext());
-						l.getNext().setPrev(lexeme);
-						l.setNext(lexeme);
-						this.size++;
+				if (currentTail != null) {
+					lexeme.setPrev(currentTail);
+					lexeme.setNext(currentTail.getNext());
+					if (currentTail.getNext() != null) {
+						currentTail.getNext().setPrev(lexeme);
 					}
+					currentTail.setNext(lexeme);
+					if (currentTail == this.tail) {
+						this.tail = lexeme;
+					}
+					this.size++;
 				}
 			}
 		}
@@ -107,12 +106,29 @@ public class IKSortedLinkSet {
 			Lexeme another = one.getNext();
 			do {
 				if (one.isOverlap(another)) {
-					//邻近的两个词元完全交叠
-					another = another.getNext();
-					//从链表中断开交叠的词元
-					one.setNext(another);
-					if (another != null) {
-						another.setPrev(one);
+					if (one.isImportantThan(another)) {
+						another = another.getNext(); // 删掉another
+						one.setNext(another);
+						if (another != null) {
+							another.setPrev(one);
+						}
+					} else {
+						// 删掉one
+						Lexeme previousOne = one.getPrev();
+						if (previousOne != null) {
+							previousOne.setNext(another);
+							another.setPrev(previousOne);
+							one = another;
+							another = another.getNext();
+						} else {
+							another.setPrev(null);
+							one.setNext(null);
+							if (one == this.head) { // 如果要删除的前面的节点刚刚好是head,要把head重新指向新节点
+								this.head = another;
+							}
+							one = another;
+							another = another.getNext();
+						}
 					}
 					this.size--;
 				} else {//词元不完全交叠

@@ -1,7 +1,6 @@
 package org.wltea.analyzer;
 
-import android.support.annotation.NonNull;
-import android.util.SparseArray;
+import java.util.HashMap;
 
 /**
  * IK Analyzer v3.2
@@ -22,14 +21,14 @@ public final class Lexeme implements Comparable<Lexeme> {
 		TYPE_NUMCOUNT, // 量词
 		TYPE_LETTER, // 英文
 		TYPE_BOOK_TITLE; // 书名
-		private static SparseArray<Type> array = new SparseArray<>();
+		private static HashMap<Integer, Type> map = new HashMap<>();
 		static {
 			for (Type t : Type.values()) {
-				array.append(t.ordinal(), t);
+				map.put(t.ordinal(), t);
 			}
 		}
 		public static Type of(int i) {
-			return array.get(i);
+			return map.get(i);
 		}
 	}
 
@@ -97,7 +96,11 @@ public final class Lexeme implements Comparable<Lexeme> {
 	 * 词元在排序集合中的比较算法
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */
-	public int compareTo(@NonNull Lexeme other) {
+	@Override
+	public int compareTo(Lexeme other) {
+		if (other == null) {
+			throw new IllegalArgumentException("other should not be null");
+		}
 		//起始位置优先
 		if (this.begin < other.getBegin()) {
 			return -1;
@@ -107,11 +110,11 @@ public final class Lexeme implements Comparable<Lexeme> {
 				return -1;
 			} else if (this.length == other.getLength()) {
 				return 0;
-			} else {//this.length < other.getLength()
+			} else {
 				return 1;
 			}
 
-		} else {//this.begin > other.getBegin()
+		} else {
 			return 1;
 		}
 	}
@@ -126,6 +129,18 @@ public final class Lexeme implements Comparable<Lexeme> {
 		return other != null
 				&& (this.getBeginPosition() <= other.getBeginPosition() && this.getEndPosition() >= other.getEndPosition()
 				|| this.getBeginPosition() >= other.getBeginPosition() && this.getEndPosition() <= other.getEndPosition());
+	}
+
+	/**
+	 * <pre>
+	 *     分词结果，相同长度的普通词和书名，选择留下书名，放弃普通词
+	 * </pre>
+	 * <pre>
+	 *     目前只有书名用到,简单处理
+	 * </pre>
+	 */
+	public boolean isImportantThan(Lexeme other) {
+		return other != null && other.getType() != Type.TYPE_BOOK_TITLE;
 	}
 
 	public int getOffset() {
@@ -232,6 +247,9 @@ public final class Lexeme implements Comparable<Lexeme> {
 				break;
 			case TYPE_CJK_FULL_NAME:
 				strbuf.append("CJK_FULL_NAME");
+				break;
+			case TYPE_BOOK_TITLE:
+				strbuf.append("CJK_BOOK_TITLE");
 				break;
 		}
 		return strbuf.toString();
