@@ -21,6 +21,7 @@ public final class Lexeme implements Comparable<Lexeme> {
 		TYPE_NUMCOUNT, // 量词
 		TYPE_LETTER, // 英文
 		TYPE_BOOK_TITLE, // 书名
+		TYPE_EMAIL, // 邮件地址
 		TYPE_URL; // URL
 		private static HashMap<Integer, Type> map = new HashMap<>();
 		static {
@@ -252,6 +253,14 @@ public final class Lexeme implements Comparable<Lexeme> {
 			case TYPE_BOOK_TITLE:
 				strbuf.append("CJK_BOOK_TITLE");
 				break;
+			case TYPE_URL:
+				strbuf.append("URL");
+				break;
+			case TYPE_EMAIL:
+				strbuf.append("EMAIL");
+				break;
+			default:
+				throw new IllegalStateException("invalid type:" + type);
 		}
 		return strbuf.toString();
 	}

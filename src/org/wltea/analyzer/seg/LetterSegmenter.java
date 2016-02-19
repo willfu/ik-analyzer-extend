@@ -85,8 +85,7 @@ public class LetterSegmenter implements ISegmenter {
 				end = context.getCursor();
 			} else {
 				// 生成已切分的词元
-				Lexeme newLexeme = new Lexeme(context.getBuffOffset(), start, end - start + 1, Lexeme.Type.TYPE_LETTER);
-				context.addLexeme(newLexeme);
+				addLexemeMixed(context);
 				// 设置当前分词器状态为“待处理”
 				start = -1;
 				end = -1;
@@ -97,15 +96,7 @@ public class LetterSegmenter implements ISegmenter {
 		if (context.getCursor() == context.getAvailable() - 1) {
 			if (start != -1 && end != -1) {
 				// 生成已切分的词元
-				String text = context.text(start, end - start + 1);
-				boolean isUrl = PatternUtil.isUrl(text);
-				Lexeme newLexeme;
-				if (isUrl) {
-					newLexeme = new Lexeme(context.getBuffOffset(), start, end - start + 1, Lexeme.Type.TYPE_URL);
-				} else {
-					newLexeme = new Lexeme(context.getBuffOffset(), start, end - start + 1, Lexeme.Type.TYPE_LETTER);
-				}
-				context.addLexeme(newLexeme);
+				addLexemeMixed(context);
 			}
 			// 设置当前分词器状态为“待处理”
 			start = -1;
@@ -116,12 +107,23 @@ public class LetterSegmenter implements ISegmenter {
 		return start != -1 || end != -1;
 	}
 
+	private void addLexemeMixed(Context context) {
+		String text = context.text(start, end - start + 1);
+		boolean isUrl = PatternUtil.isUrl(text);
+		boolean isEmail = PatternUtil.isEmail(text);
+		Lexeme newLexeme;
+		if (isUrl) {
+			newLexeme = new Lexeme(context.getBuffOffset(), start, end - start + 1, Lexeme.Type.TYPE_URL);
+		} else if (isEmail) {
+			newLexeme = new Lexeme(context.getBuffOffset(), start, end - start + 1, Lexeme.Type.TYPE_EMAIL);
+		} else {
+			newLexeme = new Lexeme(context.getBuffOffset(), start, end - start + 1, Lexeme.Type.TYPE_LETTER);
+		}
+		context.addLexeme(newLexeme);
+	}
+
 	/**
 	 * 处理纯英文字母输出
-	 *
-	 * @param input
-	 * @param context
-	 * @return
 	 */
 	private boolean processEnglishLetter(char input, Context context) {
 		if (letterStart == -1) { // 当前的分词器尚未开始处理数字字符
