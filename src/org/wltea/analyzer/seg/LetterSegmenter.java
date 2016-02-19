@@ -3,6 +3,7 @@ package org.wltea.analyzer.seg;
 import org.wltea.analyzer.Context;
 import org.wltea.analyzer.Lexeme;
 import org.wltea.analyzer.help.CharacterHelper;
+import org.wltea.analyzer.help.PatternUtil;
 
 /**
  * 负责处理字母的子分词器，涵盖一下范围
@@ -14,7 +15,7 @@ import org.wltea.analyzer.help.CharacterHelper;
 public class LetterSegmenter implements ISegmenter {
 
 	//链接符号
-	public static final char[] Sign_Connector = new char[]{'+', '-', '_', '.', '@', '&', '/', '\\'};
+	public static final char[] CONNECTOR = new char[]{':', '+', '-', '_', '.', '@', '&', '/', '\\'};
 	/*
 	 * 词元的开始位置，
 	 * 同时作为子分词器状态标识
@@ -96,7 +97,14 @@ public class LetterSegmenter implements ISegmenter {
 		if (context.getCursor() == context.getAvailable() - 1) {
 			if (start != -1 && end != -1) {
 				// 生成已切分的词元
-				Lexeme newLexeme = new Lexeme(context.getBuffOffset(), start, end - start + 1, Lexeme.Type.TYPE_LETTER);
+				String text = context.text(start, end - start + 1);
+				boolean isUrl = PatternUtil.isUrl(text);
+				Lexeme newLexeme;
+				if (isUrl) {
+					newLexeme = new Lexeme(context.getBuffOffset(), start, end - start + 1, Lexeme.Type.TYPE_URL);
+				} else {
+					newLexeme = new Lexeme(context.getBuffOffset(), start, end - start + 1, Lexeme.Type.TYPE_LETTER);
+				}
 				context.addLexeme(newLexeme);
 			}
 			// 设置当前分词器状态为“待处理”
@@ -153,7 +161,7 @@ public class LetterSegmenter implements ISegmenter {
 	}
 
 	private boolean isLetterConnector(char input) {
-		for (char c : Sign_Connector) {
+		for (char c : CONNECTOR) {
 			if (c == input) {
 				return true;
 			}
@@ -162,7 +170,7 @@ public class LetterSegmenter implements ISegmenter {
 	}
 
 	/**
-	 * 判断char是否是可接受的起始子符
+	 * 判断char是否是可接受的起始字符
 	 */
 	private boolean isAcceptedCharStart(char input) {
 		return CharacterHelper.isEnglishLetter(input) || CharacterHelper.isArabicNumber(input);

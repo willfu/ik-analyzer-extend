@@ -50,9 +50,6 @@ public class CharacterHelper {
 
 	/**
 	 * 进行字符规格化（全角转半角，大写转小写处理）
-	 *
-	 * @param input
-	 * @return char
 	 */
 	public static char regularize(char input) {
 		if (input == 12288) {

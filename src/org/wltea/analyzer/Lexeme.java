@@ -20,7 +20,8 @@ public final class Lexeme implements Comparable<Lexeme> {
 		TYPE_NUM, // 数词
 		TYPE_NUMCOUNT, // 量词
 		TYPE_LETTER, // 英文
-		TYPE_BOOK_TITLE; // 书名
+		TYPE_BOOK_TITLE, // 书名
+		TYPE_URL; // URL
 		private static HashMap<Integer, Type> map = new HashMap<>();
 		static {
 			for (Type t : Type.values()) {

@@ -25,7 +25,7 @@ public class Context {
 	private int lastAnalyzed;
 	//当前缓冲区位置指针
 	private int cursor;
-	//字符窜读取缓冲
+	//字符串读取缓冲
 	private char[] segmentBuffer;
 	/*
 	 * 记录正在使用buffer的分词器对象
@@ -61,14 +61,9 @@ public class Context {
 		return isMaxWordLength;
 	}
 
-	public void setMaxWordLength(boolean isMaxWordLength) {
-		this.isMaxWordLength = isMaxWordLength;
-	}
-
 	public int getBuffOffset() {
 		return buffOffset;
 	}
-
 
 	public void setBuffOffset(int buffOffset) {
 		this.buffOffset = buffOffset;
@@ -78,16 +73,13 @@ public class Context {
 		return lastAnalyzed;
 	}
 
-
 	public void setLastAnalyzed(int lastAnalyzed) {
 		this.lastAnalyzed = lastAnalyzed;
 	}
 
-
 	public int getCursor() {
 		return cursor;
 	}
-
 
 	public void setCursor(int cursor) {
 		this.cursor = cursor;
@@ -102,10 +94,7 @@ public class Context {
 	}
 
 	/**
-	 * 只要buffLocker中存在ISegmenter对象
-	 * 则buffer被锁定
-	 *
-	 * @return boolean 缓冲去是否被锁定
+	 * 只要buffLocker中存在ISegmenter对象则buffer被锁定
 	 */
 	public boolean isBufferLocked() {
 		return this.buffLocker.size() > 0;
@@ -127,11 +116,11 @@ public class Context {
 				int end = element.getBegin() + element.getLength();
 				// 下一个字是否在其他lexeme中，并且不是姓,也不是前置词
 				Lexeme nextElement = element.getNext();
-				Hit surNameHit = null;
-				Hit prepositionHit = null;
+				Hit surNameHit;
+				Hit prepositionHit;
 				if (nextElement != null) {
-					 surNameHit = Dictionary.matchInSurnameDict(segmentBuffer, nextElement.getBegin(), 1);
-					 prepositionHit = Dictionary.matchInPrepDict(segmentBuffer, nextElement.getBegin(), 1);
+					surNameHit = Dictionary.matchInSurnameDict(segmentBuffer, nextElement.getBegin(), 1);
+					prepositionHit = Dictionary.matchInPrepDict(segmentBuffer, nextElement.getBegin(), 1);
 					if (prepositionHit.isUnMatch() && surNameHit.isUnMatch() && end == nextElement.getBegin() && nextElement.getLength() == 1) {
 						end = nextElement.getEndPosition();
 						nextElement = nextElement.getNext();
@@ -170,28 +159,22 @@ public class Context {
 		addLexeme(newLexeme);
 	}
 
+	public String text(int begin, int length) {
+		if (length > available) {
+			throw new IllegalArgumentException("begin:" + begin + ",length:" + length);
+		}
+		return String.valueOf(segmentBuffer, begin, length);
+	}
+
 	/**
 	 * 取出分词结果集中的首个词元
-	 *
-	 * @return Lexeme 集合的第一个词元
 	 */
 	public Lexeme firstLexeme() {
 		return this.lexemeSet.pollFirst();
 	}
 
 	/**
-	 * 取出分词结果集中的最后一个词元
-	 *
-	 * @return Lexeme 集合的最后一个词元
-	 */
-	public Lexeme lastLexeme() {
-		return this.lexemeSet.pollLast();
-	}
-
-	/**
 	 * 向分词结果集添加词元
-	 *
-	 * @param lexeme
 	 */
 	public void addLexeme(Lexeme lexeme) {
 		if (lexeme == null) {
@@ -204,8 +187,6 @@ public class Context {
 
 	/**
 	 * 获取分词结果集大小
-	 *
-	 * @return int 分词结果集大小
 	 */
 	public int getResultSize() {
 		return this.lexemeSet.size();
