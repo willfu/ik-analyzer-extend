@@ -11,3 +11,4 @@
   * 得到人名“上官婉儿”
 * 添加了书名分词，将《xxx》中间包含的xxx拿出来作为一个分词结果，xxx限制在20字以内
 * 对Url的分词结果设置type为TYPE_URL，url增加http/ftp头
+* * 对Url的分词结果设置type为TYPE_EMAIL
